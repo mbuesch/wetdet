@@ -1,0 +1,35 @@
+# -*- coding: utf-8 -*-
+
+[package]
+name = "wetdet"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+#dummy-esp-idf-hal = { path = "../mock/dummy-esp-idf-hal", optional = true }
+#dummy-esp-idf-svc = { path = "../mock/dummy-esp-idf-svc", optional = true }
+#dummy-esp-idf-sys = { path = "../mock/dummy-esp-idf-sys", optional = true }
+bme280-multibus = "0.5"
+embedded-hal = "1"
+esp-idf-hal = { version = "0.46", optional = true }
+esp-idf-svc = { version = "0.52", optional = true }
+esp-idf-sys = { version = "0.37", features = ["binstart"], optional = true }
+paste = "1"
+timeslice = { version = "0.6", features = [ "meas" ] }
+
+[features]
+default = [ "hw" ]
+hw = [ "dep:esp-idf-hal", "dep:esp-idf-sys", "dep:esp-idf-svc", "timeslice/hal-espidf" ]
+#sim = [ "dep:dummy-esp-idf-hal", "dep:dummy-esp-idf-sys", "dep:dummy-esp-idf-svc", "timeslice/hal-dummy" ]
+
+[build-dependencies]
+embuild = "0.33"
+
+[profile.release]                                                                                       
+lto = "fat"
+
+[patch.crates-io]
+timeslice = { git = "https://github.com/mbuesch/timeslicers.git", branch = "master" }
+
+# vim: ts=4 sw=4 expandtab
