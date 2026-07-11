@@ -44,16 +44,17 @@ impl<'a> System<'a> {
     }
 }
 
-timeslice::define_timeslice_sched! {
+timeslice::define_sched! {
     name: sched_main,
     num_objs: 1,
     tasks: {
-        { name: task_100ms, period: 100 ms, cpu: 0, stack: 16 kiB },
-        { name: task_1000ms, period: 1000 ms, cpu: 0, stack: 16 kiB }
-    }
+        { name: task_100ms, period: 100 ms,   cpu: 0, prio: 9, stack: 8 kiB },
+        { name: task_1s,    period: 1_000 ms, cpu: 0, prio: 8, stack: 8 kiB },
+        { name: task_5s,    period: 5_000 ms, cpu: 0, prio: 7, stack: 8 kiB },
+    },
 }
 
-impl<'a> sched_main::Ops for Box<System<'a>> {
+impl<'a> sched_main::Ops for System<'a> {
     fn task_100ms(&self) {
         let env = {
             let mut envsensor = self.envsensor.lock().unwrap();
@@ -69,7 +70,7 @@ impl<'a> sched_main::Ops for Box<System<'a>> {
         }
     }
 
-    fn task_1000ms(&self) {
+    fn task_1s(&self) {
         let alarm_active = {
             let mut statemachine = self.statemachine.lock().unwrap();
             statemachine.evaluate_1000ms();
@@ -79,6 +80,10 @@ impl<'a> sched_main::Ops for Box<System<'a>> {
             let mut alarm = self.alarm.lock().unwrap();
             alarm.activate(alarm_active);
         }
+    }
+
+    fn task_5s(&self) {
+        sched_main::rt_print();
     }
 }
 
@@ -105,7 +110,7 @@ fn main() {
     let alarm = Alarm::new(dp.pins.gpio12.into());
 
     println!("Starting scheduler...");
-    let system = Arc::new(Box::new(System::new(prog_uart, envsensor, alarm)));
+    let system = Arc::new(System::new(prog_uart, envsensor, alarm));
     sched_main::init([system]);
     sched_main::rt_enable(true);
 }

@@ -63,7 +63,7 @@ impl StateMachine {
             let d_hum = rel_hum - meas_front.rel_hum;
 
             println!(
-                "hum: {:.1} % / {:.1} %, d_hum: {:.1} % / {:.1} %, alarm: {}, off_counter: {} / {}",
+                "\nhum: {:.1} % / {:.1} %, d_hum: {:.1} % / {:.1} %, alarm: {}, off_counter: {} / {}",
                 to_percent(rel_hum),
                 to_percent(HUM_ALARM_ON_THRES),
                 to_percent(d_hum),

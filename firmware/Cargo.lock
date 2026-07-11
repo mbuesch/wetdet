@@ -168,9 +168,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.66"
+version = "1.2.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5d6cac793997bd970000024b2934968efe83b382de4fdcf4fcb46b6ee4ad996"
+checksum = "e17dd265a7d0f31ef544e1b20e03add05d3b45b491b633b10d67145d2acc1a38"
 dependencies = [
  "find-msvc-tools",
  "shlex 2.0.1",
@@ -1011,10 +1011,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
-name = "paste"
-version = "1.0.15"
+name = "pastey"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
+checksum = "2ee67f1008b1ba2321834326597b8e186293b049a023cdef258527550b9935b4"
 
 [[package]]
 name = "pin-project-lite"
@@ -1352,13 +1352,13 @@ dependencies = [
 
 [[package]]
 name = "timeslice"
-version = "0.6.0"
-source = "git+https://github.com/mbuesch/timeslicers.git?branch=master#c7313d8a004ff259dc51c368be4963262225ee3b"
+version = "0.7.0"
+source = "git+https://github.com/mbuesch/timeslicers.git?branch=master#ec16de62ce7de247b353a38baa291f6757d46433"
 dependencies = [
  "cfg-if",
  "esp-idf-hal",
  "esp-idf-svc",
- "paste",
+ "pastey",
 ]
 
 [[package]]
@@ -1489,7 +1489,6 @@ dependencies = [
  "esp-idf-hal",
  "esp-idf-svc",
  "esp-idf-sys",
- "paste",
  "timeslice",
 ]
 

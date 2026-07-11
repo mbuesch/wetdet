@@ -15,8 +15,7 @@ embedded-hal = "1"
 esp-idf-hal = { version = "0.46", optional = true }
 esp-idf-svc = { version = "0.52", optional = true }
 esp-idf-sys = { version = "0.37", features = ["binstart"], optional = true }
-paste = "1"
-timeslice = { version = "0.6", features = [ "meas" ] }
+timeslice = { version = "0.7", features = [ "meas" ] }
 
 [features]
 default = [ "hw" ]
@@ -31,5 +30,6 @@ lto = "fat"
 
 [patch.crates-io]
 timeslice = { git = "https://github.com/mbuesch/timeslicers.git", branch = "master" }
+#timeslice = { path = "../../timeslicers" }
 
 # vim: ts=4 sw=4 expandtab
