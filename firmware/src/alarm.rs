@@ -5,12 +5,11 @@
 //
 
 use crate::esp_idf::hal::gpio::{AnyIOPin, Level, Output, PinDriver};
-use std::num::Saturating;
 
 pub struct Alarm<'a> {
     active: bool,
     pin: PinDriver<'a, Output>,
-    count: Saturating<u8>,
+    count: u8,
 }
 
 impl<'a> Alarm<'a> {
@@ -20,7 +19,7 @@ impl<'a> Alarm<'a> {
         Alarm {
             active: false,
             pin,
-            count: Saturating(0),
+            count: 0,
         }
     }
 
@@ -34,16 +33,16 @@ impl<'a> Alarm<'a> {
     pub fn run_100ms(&mut self) {
         let mut level = Level::Low;
         if self.active {
-            if self.count <= Saturating(6) {
+            if self.count <= 6 {
                 level = Level::High;
                 self.count += 1;
-            } else if self.count <= Saturating(35) {
+            } else if self.count <= 35 {
                 self.count += 1;
             } else {
-                self.count = Saturating(0);
+                self.count = 0;
             }
         } else {
-            self.count = Saturating(0);
+            self.count = 0;
         }
         self.pin
             .set_level(level)

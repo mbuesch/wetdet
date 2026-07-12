@@ -15,6 +15,7 @@ embedded-hal = "1"
 esp-idf-hal = { version = "0.46", optional = true }
 esp-idf-svc = { version = "0.52", optional = true }
 esp-idf-sys = { version = "0.37", features = ["binstart"], optional = true }
+heapless = "0.9"
 timeslice = { version = "0.7", features = [ "meas" ] }
 
 [features]

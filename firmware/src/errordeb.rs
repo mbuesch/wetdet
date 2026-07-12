@@ -1,4 +1,8 @@
 // -*- coding: utf-8 -*-
+//
+// Copyright Michael Büsch <m@bues.ch>
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+//
 
 pub struct ErrorDeb<const RATIO: u8, const LIMIT: u8> {
     count: u8,

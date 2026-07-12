@@ -9,7 +9,7 @@ use crate::{
     envsensor::EnvSensorResult,
     util::to_percent,
 };
-use std::collections::VecDeque;
+use heapless::Deque;
 
 /// Measurement interval (in milliseconds).
 const MEAS_INTERVAL_MS: u32 = 1_000; // task_1s
@@ -19,7 +19,7 @@ const MEAS_LEN_MS: u32 = 10_000;
 const MEAS_LEN: usize = (MEAS_LEN_MS / MEAS_INTERVAL_MS) as usize;
 
 pub struct StateMachine {
-    meas: VecDeque<EnvSensorResult>,
+    meas: Deque<EnvSensorResult, MEAS_LEN>,
     alarm: bool,
     filled: bool,
     off_sec: u32,
@@ -38,7 +38,7 @@ impl StateMachine {
             OFF_SEC_THRES
         );
         StateMachine {
-            meas: VecDeque::new(),
+            meas: Deque::new(),
             alarm: false,
             filled: false,
             off_sec: 0,
@@ -49,7 +49,7 @@ impl StateMachine {
         while self.meas.len() >= MEAS_LEN {
             self.meas.pop_front();
         }
-        self.meas.push_back(env);
+        self.meas.push_back(env).expect("Deque::push_back failed");
     }
 
     pub fn evaluate_1000ms(&mut self) {
