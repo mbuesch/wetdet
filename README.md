@@ -7,11 +7,17 @@ Alarm trigger conditions:
 - Air humidity: `> 80 %rel`
 - or delta humidity change: `hum(t) - hum(t-10s) > 5 %rel`
 
+Alarm shutoff conditions:
+
+- Air humidity: `< 50 %rel` for 15 seconds
+
 ## Hardware
 
-- ESP32 microcontroller
+- ESP32-WROOM microcontroller
 - BME280 sensor for measuring humidity
-- Alarm module with speaker or buzzer, controlled by GPIO alarm on/off
+- Digital alarm output signal (GPIO)
+
+An external alarm module with speaker or buzzer or any other way to react to the alarm signal can be connected to the digital output pin.
 
 ## License / Copyright
 
