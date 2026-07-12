@@ -29,8 +29,8 @@ embuild = "0.33"
 [profile.release]                                                                                       
 lto = "fat"
 
-[patch.crates-io]
-timeslice = { git = "https://github.com/mbuesch/timeslicers.git", branch = "master" }
+#[patch.crates-io]
+#timeslice = { git = "https://github.com/mbuesch/timeslicers.git", branch = "master" }
 #timeslice = { path = "../../timeslicers" }
 
 # vim: ts=4 sw=4 expandtab

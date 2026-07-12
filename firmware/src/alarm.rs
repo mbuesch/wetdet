@@ -4,7 +4,10 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 
-use crate::esp_idf::hal::gpio::{AnyIOPin, Level, Output, PinDriver};
+use crate::{
+    config::PRINT_STATE,
+    esp_idf::hal::gpio::{AnyIOPin, Level, Output, PinDriver},
+};
 
 pub struct Alarm<'a> {
     active: bool,
@@ -25,7 +28,9 @@ impl<'a> Alarm<'a> {
 
     pub fn activate(&mut self, active: bool) {
         if self.active != active {
-            println!("Alarm: {}", if active { "ON" } else { "OFF" });
+            if PRINT_STATE {
+                println!("Alarm: {}", if active { "ON" } else { "OFF" });
+            }
         }
         self.active = active;
     }

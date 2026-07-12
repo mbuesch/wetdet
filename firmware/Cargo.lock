@@ -1353,7 +1353,8 @@ dependencies = [
 [[package]]
 name = "timeslice"
 version = "0.7.0"
-source = "git+https://github.com/mbuesch/timeslicers.git?branch=master#ec16de62ce7de247b353a38baa291f6757d46433"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55ebbaeb6ac605f69e9e52e55ab8a9ea54e15dea73eeefe4677c0342239838ec"
 dependencies = [
  "cfg-if",
  "esp-idf-hal",

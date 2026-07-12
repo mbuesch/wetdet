@@ -16,6 +16,7 @@ mod util;
 
 use crate::{
     alarm::Alarm,
+    config::PRINT_STATE,
     envsensor::EnvSensor,
     esp_idf::{
         hal::{
@@ -110,10 +111,12 @@ fn main() {
 
     let alarm = Alarm::new(dp.pins.gpio12.into());
 
-    println!("Starting scheduler...");
+    if PRINT_STATE {
+        println!("Starting scheduler...");
+    }
     let system = Arc::new(System::new(prog_uart, envsensor, alarm));
     sched_main::init([system]);
-    sched_main::rt_enable(true);
+    sched_main::rt_enable(PRINT_STATE);
 }
 
 // vim: ts=4 sw=4 expandtab

@@ -6,6 +6,11 @@
 
 use crate::util::percent;
 
+// General
+
+/// Whether to print the state of the system to the serial console.
+pub const PRINT_STATE: bool = true;
+
 // Alarm ON
 
 /// Relative air humidity threshold to trigger the alarm.
