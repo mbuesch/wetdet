@@ -7,7 +7,7 @@
 use crate::envsensor::EnvSensorResult;
 use std::{collections::VecDeque, num::Saturating};
 
-const MEAS_INTERVAL_MS: u32 = 100; // task_100ms
+const MEAS_INTERVAL_MS: u32 = 1_000;
 const MEAS_DURN_MS: u32 = 10_000;
 const MEAS_LEN: usize = (MEAS_DURN_MS / MEAS_INTERVAL_MS) as usize;
 
@@ -43,7 +43,7 @@ impl StateMachine {
         }
     }
 
-    pub fn feed_env_100ms(&mut self, env: EnvSensorResult) {
+    pub fn feed_env_1000ms(&mut self, env: EnvSensorResult) {
         while self.meas.len() >= MEAS_LEN {
             self.meas.pop_front();
         }

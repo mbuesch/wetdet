@@ -56,14 +56,6 @@ timeslice::define_sched! {
 
 impl<'a> sched_main::Ops for System<'a> {
     fn task_100ms(&self) {
-        let env = {
-            let mut envsensor = self.envsensor.lock().unwrap();
-            envsensor.read()
-        };
-        if let Some(env) = env {
-            let mut statemachine = self.statemachine.lock().unwrap();
-            statemachine.feed_env_100ms(env);
-        }
         {
             let mut alarm = self.alarm.lock().unwrap();
             alarm.run_100ms();
@@ -71,8 +63,15 @@ impl<'a> sched_main::Ops for System<'a> {
     }
 
     fn task_1s(&self) {
+        let env = {
+            let mut envsensor = self.envsensor.lock().unwrap();
+            envsensor.read()
+        };
         let alarm_active = {
             let mut statemachine = self.statemachine.lock().unwrap();
+            if let Some(env) = env {
+                statemachine.feed_env_1000ms(env);
+            }
             statemachine.evaluate_1000ms();
             statemachine.alarm_active()
         };
