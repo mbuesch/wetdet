@@ -11,6 +11,8 @@ Alarm shutoff conditions:
 
 - Air humidity: `< 50 %rel` for 15 seconds
 
+These parameters can all be adjusted in the file `firmware/src/config.rs`.
+
 ## Hardware
 
 - ESP32-WROOM microcontroller

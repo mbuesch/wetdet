@@ -7,10 +7,12 @@
 #![cfg_attr(not(feature = "hw"), allow(dead_code))]
 
 mod alarm;
+mod config;
 mod envsensor;
 mod errordeb;
 mod esp_idf;
 mod statemachine;
+mod util;
 
 use crate::{
     alarm::Alarm,

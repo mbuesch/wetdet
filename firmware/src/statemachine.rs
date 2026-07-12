@@ -4,33 +4,25 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 
-use crate::envsensor::EnvSensorResult;
-use std::{collections::VecDeque, num::Saturating};
+use crate::{
+    config::{D_HUM_ALARM_ON_THRES, HUM_ALARM_OFF_THRES, HUM_ALARM_ON_THRES, OFF_SEC_THRES},
+    envsensor::EnvSensorResult,
+    util::to_percent,
+};
+use std::collections::VecDeque;
 
+/// Measurement interval (in milliseconds).
 const MEAS_INTERVAL_MS: u32 = 1_000; // task_1s
+/// Measurement buffer length (in milliseconds).
 const MEAS_LEN_MS: u32 = 10_000;
+/// Measurement buffer length (in number of entries).
 const MEAS_LEN: usize = (MEAS_LEN_MS / MEAS_INTERVAL_MS) as usize;
-
-// Alarm ON
-const HUM_ALARM_ON_THRES: f32 = percent(70.0);
-const D_HUM_ALARM_ON_THRES: f32 = percent(5.0);
-// Alarm OFF
-const OFF_SEC_THRES: u8 = 15;
-const HUM_ALARM_OFF_THRES: f32 = percent(50.0);
-
-const fn percent(val: f32) -> f32 {
-    val / 100.0
-}
-
-const fn to_percent(val: f32) -> f32 {
-    val * 100.0
-}
 
 pub struct StateMachine {
     meas: VecDeque<EnvSensorResult>,
     alarm: bool,
     filled: bool,
-    off_sec: Saturating<u8>,
+    off_sec: u32,
 }
 
 impl StateMachine {
@@ -49,7 +41,7 @@ impl StateMachine {
             meas: VecDeque::new(),
             alarm: false,
             filled: false,
-            off_sec: Saturating(0),
+            off_sec: 0,
         }
     }
 
@@ -79,17 +71,18 @@ impl StateMachine {
                 to_percent(d_hum),
                 to_percent(D_HUM_ALARM_ON_THRES),
                 self.alarm,
-                self.off_sec.0,
+                self.off_sec,
                 OFF_SEC_THRES
             );
 
             if rel_hum > HUM_ALARM_ON_THRES || d_hum >= D_HUM_ALARM_ON_THRES {
                 self.alarm = true;
-                self.off_sec = Saturating(0);
+                self.off_sec = 0;
             } else if rel_hum < HUM_ALARM_OFF_THRES {
-                self.off_sec += 1;
-                if self.off_sec >= Saturating(OFF_SEC_THRES) {
+                if self.off_sec >= OFF_SEC_THRES {
                     self.alarm = false;
+                } else {
+                    self.off_sec += 1;
                 }
             }
         }
