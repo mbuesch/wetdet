@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 
-use crate::util::percent;
+use crate::{alarm::alarm_time_ms, util::percent};
 
 // General
 
@@ -24,5 +24,13 @@ pub const D_HUM_ALARM_ON_THRES: f32 = percent(5.0);
 pub const HUM_ALARM_OFF_THRES: f32 = percent(50.0);
 /// Time (in seconds) the relative air humidity must be below the threshold to turn off the alarm.
 pub const OFF_SEC_THRES: u32 = 15;
+
+// Alarm PWM
+
+/// Time the digital output is high when the alarm is active.
+pub const ALARM_ON_TIME: u32 = alarm_time_ms(700);
+/// Time the digital output is low when the alarm is active.
+/// If set to 0, the output will be high all the time when the alarm is active.
+pub const ALARM_OFF_TIME: u32 = alarm_time_ms(3000);
 
 // vim: ts=4 sw=4 expandtab
