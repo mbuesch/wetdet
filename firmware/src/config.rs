@@ -11,6 +11,13 @@ use crate::{alarm::alarm_time_ms, util::percent};
 /// Whether to print the state of the system to the serial console.
 pub const PRINT_STATE: bool = true;
 
+// Measurement
+
+/// Measurement buffer length (in seconds).
+/// This many measurements are stored in the buffer to evaluate the alarm state.
+/// D_HUM is calculated based on the first and last measurement in the buffer.
+pub const MEAS_LEN_S: u32 = 120;
+
 // Alarm ON
 
 /// Relative air humidity threshold to trigger the alarm.

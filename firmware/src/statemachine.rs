@@ -6,19 +6,20 @@
 
 use crate::{
     config::{
-        D_HUM_ALARM_ON_THRES, HUM_ALARM_OFF_THRES, HUM_ALARM_ON_THRES, OFF_SEC_THRES, PRINT_STATE,
+        D_HUM_ALARM_ON_THRES, HUM_ALARM_OFF_THRES, HUM_ALARM_ON_THRES, MEAS_LEN_S, OFF_SEC_THRES,
+        PRINT_STATE,
     },
     envsensor::EnvSensorResult,
-    util::to_percent,
+    util::{min, to_percent},
 };
 use heapless::Deque;
 
 /// Measurement interval (in milliseconds).
 const MEAS_INTERVAL_MS: u32 = 1_000; // task_1s
-/// Measurement buffer length (in milliseconds).
-const MEAS_LEN_MS: u32 = 10_000;
 /// Measurement buffer length (in number of entries).
-const MEAS_LEN: usize = (MEAS_LEN_MS / MEAS_INTERVAL_MS) as usize;
+const MEAS_LEN: usize = ((MEAS_LEN_S * 1_000).div_ceil(MEAS_INTERVAL_MS)) as usize;
+/// Minimum number of measurements in the buffer before evaluation starts.
+const MEAS_MIN_FILL: usize = min(MEAS_LEN, 10);
 
 pub struct StateMachine {
     meas: Deque<EnvSensorResult, MEAS_LEN>,
@@ -57,7 +58,7 @@ impl StateMachine {
     }
 
     pub fn evaluate_1000ms(&mut self) {
-        if !self.filled && self.meas.len() >= MEAS_LEN {
+        if !self.filled && self.meas.len() >= MEAS_MIN_FILL {
             self.filled = true;
             if PRINT_STATE {
                 println!("Meas buffer filled, starting evaluation...");
