@@ -93,6 +93,8 @@ impl StateMachine {
                 } else {
                     self.off_sec += 1;
                 }
+            } else {
+                self.off_sec = 0;
             }
         }
     }

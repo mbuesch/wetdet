@@ -30,7 +30,7 @@ pub const D_HUM_ALARM_ON_THRES: f32 = percent(5.0);
 /// Relative air humidity threshold to turn off the alarm.
 pub const HUM_ALARM_OFF_THRES: f32 = percent(50.0);
 /// Time (in seconds) the relative air humidity must be below the threshold to turn off the alarm.
-pub const OFF_SEC_THRES: u32 = 15;
+pub const OFF_SEC_THRES: u32 = 30;
 
 // Alarm PWM
 

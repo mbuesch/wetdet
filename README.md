@@ -9,7 +9,7 @@ Alarm trigger conditions:
 
 Alarm shutoff conditions:
 
-- Air humidity: `< 50 %rel` for 15 seconds
+- Air humidity: `< 50 %rel` for 30 seconds
 
 These parameters can all be adjusted in the file `firmware/src/config.rs`.
 
