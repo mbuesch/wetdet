@@ -23,5 +23,5 @@ rustflags = ["-C", "default-linker-libraries"]
 build-std = ["std", "panic_abort"]
 
 [env]
-ESP_IDF_SYS_ROOT_CRATE = { value = "wetdet" }
+ESP_IDF_SYS_ROOT_CRATE = { value = "main" }
 ESP_IDF_VERSION = { value = "tag:v5.5.4" }
