@@ -26,7 +26,7 @@ pub const MEAS_LT_FACT: usize = 3;
 /// Relative air humidity threshold to trigger the alarm.
 pub const HUM_ALARM_ON_THRES: f32 = percent(95.0);
 /// Short-term air humidity delta change threshold to trigger the alarm.
-pub const D_HUM_ST_ALARM_ON_THRES: f32 = percent(1.5);
+pub const D_HUM_ST_ALARM_ON_THRES: f32 = percent(2.0);
 /// Long-term air humidity delta change threshold to trigger the alarm.
 pub const D_HUM_LT_ALARM_ON_THRES: f32 = percent(5.0);
 
