@@ -16,21 +16,21 @@ pub const PRINT_STATE: bool = true;
 /// Measurement buffer length (in seconds).
 /// This many measurements are stored in the buffer to evaluate the alarm state.
 /// D_HUM is calculated based on the first and last measurement in the buffer.
-pub const MEAS_LEN_S: u32 = 600;
+pub const MEAS_LEN_S: u32 = 300;
 
 // Alarm ON
 
 /// Relative air humidity threshold to trigger the alarm.
-pub const HUM_ALARM_ON_THRES: f32 = percent(70.0);
+pub const HUM_ALARM_ON_THRES: f32 = percent(92.0);
 /// Sudden change in air humidity to trigger the alarm.
-pub const D_HUM_ALARM_ON_THRES: f32 = percent(3.0);
+pub const D_HUM_ALARM_ON_THRES: f32 = percent(1.5);
 
 // Alarm OFF
 
 /// Relative air humidity threshold to turn off the alarm.
 pub const HUM_ALARM_OFF_THRES: f32 = percent(50.0);
 /// Time (in seconds) the relative air humidity must be below the threshold to turn off the alarm.
-pub const OFF_SEC_THRES: u32 = 60;
+pub const OFF_SEC_THRES: u32 = 120;
 
 // Alarm PWM
 
