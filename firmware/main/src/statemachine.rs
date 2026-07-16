@@ -6,8 +6,8 @@
 
 use crate::{
     config::{
-        D_HUM_ALARM_ON_THRES, HUM_ALARM_OFF_THRES, HUM_ALARM_ON_THRES, MEAS_LEN_S, OFF_SEC_THRES,
-        PRINT_STATE,
+        D_HUM_LT_ALARM_ON_THRES, D_HUM_ST_ALARM_ON_THRES, HUM_ALARM_OFF_THRES, HUM_ALARM_ON_THRES,
+        MEAS_LEN_S, MEAS_LT_FACT, OFF_SEC_THRES, PRINT_STATE,
     },
     envsensor::EnvSensorResult,
     util::{min, to_percent},
@@ -22,7 +22,9 @@ const MEAS_LEN: usize = ((MEAS_LEN_S * 1_000).div_ceil(MEAS_INTERVAL_MS)) as usi
 const MEAS_MIN_FILL: usize = min(MEAS_LEN, 10);
 
 pub struct StateMachine {
-    meas: Deque<EnvSensorResult, MEAS_LEN>,
+    meas_st: Deque<EnvSensorResult, MEAS_LEN>,
+    meas_lt: Deque<EnvSensorResult, MEAS_LEN>,
+    meas_lt_count: usize,
     alarm: bool,
     filled: bool,
     off_sec: u32,
@@ -32,9 +34,10 @@ impl StateMachine {
     pub fn new() -> Self {
         if PRINT_STATE {
             println!(
-                "Humidity alarm ON threshold: {:.1} %rel, d_hum: {:.1} %rel",
+                "Humidity alarm ON threshold: {:.1} %rel, d_hum: {:.1} %rel (st), {:.1} %rel (lt)",
                 to_percent(HUM_ALARM_ON_THRES),
-                to_percent(D_HUM_ALARM_ON_THRES)
+                to_percent(D_HUM_ST_ALARM_ON_THRES),
+                to_percent(D_HUM_LT_ALARM_ON_THRES)
             );
             println!(
                 "Humidity alarm OFF threshold: {:.1} %rel, off_sec: {} s",
@@ -43,50 +46,92 @@ impl StateMachine {
             );
         }
         StateMachine {
-            meas: Deque::new(),
+            meas_st: Deque::new(),
+            meas_lt: Deque::new(),
+            meas_lt_count: 0,
             alarm: false,
             filled: false,
             off_sec: 0,
         }
     }
 
-    pub fn feed_env_1000ms(&mut self, env: EnvSensorResult) {
-        while self.meas.len() >= MEAS_LEN {
-            self.meas.pop_front();
+    fn push_meas(meas: &mut Deque<EnvSensorResult, MEAS_LEN>, env: EnvSensorResult) {
+        while meas.len() >= MEAS_LEN {
+            meas.pop_front();
         }
-        self.meas.push_back(env).expect("Deque::push_back failed");
+        meas.push_back(env).expect("Deque::push_back failed");
+    }
+
+    pub fn feed_env_1000ms(&mut self, env: EnvSensorResult) {
+        Self::push_meas(&mut self.meas_st, env.clone());
+
+        if self.meas_lt_count == 0 {
+            Self::push_meas(&mut self.meas_lt, env);
+        }
+        self.meas_lt_count = (self.meas_lt_count + 1) % MEAS_LT_FACT;
     }
 
     pub fn evaluate_1000ms(&mut self) {
-        if !self.filled && self.meas.len() >= MEAS_MIN_FILL {
+        if !self.filled && self.meas_st.len() >= MEAS_MIN_FILL {
             self.filled = true;
             if PRINT_STATE {
                 println!("Meas buffer filled, starting evaluation...");
             }
         }
         if self.filled
-            && let Some(meas_front) = self.meas.front()
-            && let Some(meas_back) = self.meas.back()
+            && let Some(meas_st_front) = self.meas_st.front()
+            && let Some(meas_st_back) = self.meas_st.back()
+            && let Some(meas_lt_front) = self.meas_lt.front()
+            && let Some(meas_lt_back) = self.meas_lt.back()
         {
-            let rel_hum = meas_back.rel_hum;
-            let d_hum = rel_hum - meas_front.rel_hum;
+            let rel_hum = meas_st_back.rel_hum;
+            let d_hum_st = meas_st_back.rel_hum - meas_st_front.rel_hum;
+            let d_hum_lt = meas_lt_back.rel_hum - meas_lt_front.rel_hum;
 
             if PRINT_STATE {
                 println!(
-                    "\nhum: {:.1} %rel / {:.1} %rel, d_hum: {:.1} %rel / {:.1} %rel, alarm: {}, off_sec: {} s / {} s",
+                    "\nhum: {:.1} %rel / {:.1} %rel, \
+                    d_hum_st: {:.1}/{:.1} %rel, \
+                    d_hum_lt: {:.1}/{:.1} %rel, \
+                    alarm: {}, off_sec: {}/{} s",
                     to_percent(rel_hum),
                     to_percent(HUM_ALARM_ON_THRES),
-                    to_percent(d_hum),
-                    to_percent(D_HUM_ALARM_ON_THRES),
+                    to_percent(d_hum_st),
+                    to_percent(D_HUM_ST_ALARM_ON_THRES),
+                    to_percent(d_hum_lt),
+                    to_percent(D_HUM_LT_ALARM_ON_THRES),
                     self.alarm,
                     self.off_sec,
                     OFF_SEC_THRES
                 );
             }
 
-            if rel_hum > HUM_ALARM_ON_THRES || d_hum >= D_HUM_ALARM_ON_THRES {
-                self.alarm = true;
-                self.off_sec = 0;
+            let mut trig_alarm = false;
+
+            if rel_hum > HUM_ALARM_ON_THRES {
+                if !self.alarm {
+                    println!(
+                        "Trigger: Humidity alarm ON (rel_hum: {:.1} %rel)",
+                        to_percent(rel_hum)
+                    );
+                }
+                trig_alarm = true;
+            } else if d_hum_st >= D_HUM_ST_ALARM_ON_THRES {
+                if !self.alarm {
+                    println!(
+                        "Trigger: Humidity alarm ON (d_hum: {:.1} %rel short-term)",
+                        to_percent(d_hum_st)
+                    );
+                }
+                trig_alarm = true;
+            } else if d_hum_lt >= D_HUM_LT_ALARM_ON_THRES {
+                if !self.alarm {
+                    println!(
+                        "Trigger: Humidity alarm ON (d_hum: {:.1} %rel long-term)",
+                        to_percent(d_hum_lt)
+                    );
+                }
+                trig_alarm = true;
             } else if rel_hum < HUM_ALARM_OFF_THRES {
                 if self.off_sec >= OFF_SEC_THRES {
                     self.alarm = false;
@@ -94,6 +139,11 @@ impl StateMachine {
                     self.off_sec += 1;
                 }
             } else {
+                self.off_sec = 0;
+            }
+
+            if trig_alarm {
+                self.alarm = true;
                 self.off_sec = 0;
             }
         }

@@ -17,13 +17,18 @@ pub const PRINT_STATE: bool = true;
 /// This many measurements are stored in the buffer to evaluate the alarm state.
 /// D_HUM is calculated based on the first and last measurement in the buffer.
 pub const MEAS_LEN_S: u32 = 300;
+/// Factor between short-term and long-term measurement lengths.
+/// The long-term measurement length is MEAS_LT_FACT times longer than the short-term MEAS_LEN_S.
+pub const MEAS_LT_FACT: usize = 3;
 
 // Alarm ON
 
 /// Relative air humidity threshold to trigger the alarm.
-pub const HUM_ALARM_ON_THRES: f32 = percent(92.0);
-/// Sudden change in air humidity to trigger the alarm.
-pub const D_HUM_ALARM_ON_THRES: f32 = percent(1.5);
+pub const HUM_ALARM_ON_THRES: f32 = percent(95.0);
+/// Short-term air humidity delta change threshold to trigger the alarm.
+pub const D_HUM_ST_ALARM_ON_THRES: f32 = percent(1.5);
+/// Long-term air humidity delta change threshold to trigger the alarm.
+pub const D_HUM_LT_ALARM_ON_THRES: f32 = percent(5.0);
 
 // Alarm OFF
 

@@ -5,7 +5,8 @@ Wetdet is a simple tool that monitors air humidity levels and triggers an alarm 
 Alarm trigger conditions:
 
 - Air delta humidity change: `hum(t) - hum(t-300s) > 1.5 %rel`
-- or air humidity: `> 92 %rel`
+- or air delta humidity change: `hum(t) - hum(t-1500s) > 5.0 %rel`
+- or air humidity: `> 95 %rel`
 
 Alarm shutoff conditions:
 
