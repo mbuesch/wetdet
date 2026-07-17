@@ -19,6 +19,7 @@ const MAGIC: u64 = 0x9B98E2A6896DC3E1;
 const DATA_BLOCKS_OFFS: u64 = 16;
 pub const BLOCK_SIZE: usize = 512;
 
+#[inline]
 fn from_le(bytes: &[u8], nr: usize) -> u64 {
     match nr {
         1 => bytes[0] as u64,
@@ -29,6 +30,7 @@ fn from_le(bytes: &[u8], nr: usize) -> u64 {
     }
 }
 
+#[inline]
 fn to_le(bytes: &mut Vec<u8>, nr: usize, val: u64) {
     match nr {
         1 => bytes.extend_from_slice(&[val as u8]),
