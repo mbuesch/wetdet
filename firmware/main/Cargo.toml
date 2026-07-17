@@ -12,11 +12,15 @@ publish = false
 #dummy-esp-idf-sys = { path = "../mock/dummy-esp-idf-sys", optional = true }
 bme280-multibus = "0.5"
 embedded-hal = "1"
+embedded-sdmmc = "0.9"
 esp-idf-hal = { version = "0.46", optional = true }
 esp-idf-svc = { version = "0.52", optional = true }
 esp-idf-sys = { version = "0.37", features = ["binstart"], optional = true }
 heapless = "0.9"
+rkyv = "0.8"
 timeslice = { version = "0.7", features = [ "meas" ] }
+
+sdlog = { path = "../sdlog", features = [ "debug" ] }
 
 [features]
 default = [ "hw" ]

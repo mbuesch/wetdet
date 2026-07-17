@@ -3,7 +3,7 @@
 [workspace]
 members = [
     "main",
-    #"sdlog",
+    "sdlog",
 ]
 resolver = "3"
 
