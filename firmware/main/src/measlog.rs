@@ -152,9 +152,6 @@ impl<'a> MeasLog<'a> {
     }
 
     pub fn commit(&mut self) {
-        if let Err(e) = self.log.flush_queue() {
-            println!("MeasLog: Queue processing failed: {e:?}");
-        }
         if let Err(e) = self.log.commit() {
             println!("MeasLog: Commit failed: {e:?}");
         }

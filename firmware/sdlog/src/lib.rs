@@ -15,7 +15,7 @@ use rkyv::{
 };
 use std::{fmt, mem::size_of};
 
-const MAGIC: u64 = 0x9B98E2A6896DC3E0;
+const MAGIC: u64 = 0x9B98E2A6896DC3E1;
 const DATA_BLOCKS_OFFS: u64 = 16;
 pub const BLOCK_SIZE: usize = 512;
 
@@ -99,8 +99,6 @@ pub struct SdLog<B: BlockIo, I: Item, const QLEN: usize> {
     /// Bytes of the block currently being assembled for writing (`write_block`).
     /// Its length always equals `write_byte` and is always `< BLOCK_SIZE`.
     wrbuf: heapless::Vec<u8, BLOCK_SIZE>,
-    /// Whether `wrbuf` holds bytes that have not yet been durably written.
-    wrbuf_dirty: bool,
 
     /// Cache of the block currently loaded for reading, so that multiple
     /// items packed into the same block don't cause repeated device reads.
@@ -133,7 +131,6 @@ where
             bio,
             queue: heapless::Deque::new(),
             wrbuf: heapless::Vec::new(),
-            wrbuf_dirty: false,
             rdcache: [0; BLOCK_SIZE],
             rdcache_idx: None,
             status_page_dirty: false,
@@ -309,7 +306,6 @@ where
         self.write_block = self.block_idx_inc(self.write_block);
         self.write_byte = 0;
         self.wrbuf.clear();
-        self.wrbuf_dirty = false;
 
         Ok(())
     }
@@ -327,11 +323,8 @@ where
             if self.wrbuf.len() == BLOCK_SIZE {
                 self.flush_full_block()?;
             }
+            self.status_page_dirty = true;
         }
-
-        self.status_page_dirty = true;
-        self.wrbuf_dirty = !self.wrbuf.is_empty();
-
         Ok(())
     }
 
@@ -373,7 +366,7 @@ where
         self.write_data(&framed)
     }
 
-    pub fn flush_queue(&mut self) -> Result<(), Error> {
+    fn flush_queue(&mut self) -> Result<(), Error> {
         while let Some(item) = self.queue.pop_front() {
             if let Err(e) = self.write_item(&item) {
                 // Put the item back.
@@ -382,11 +375,6 @@ where
             }
         }
         Ok(())
-    }
-
-    pub fn push_item_flush(&mut self, item: I) -> Result<(), Error> {
-        self.push_item(item)?;
-        self.flush_queue()
     }
 
     /// Ensure the block at `self.read_block` is loaded into `self.rdcache`.
@@ -483,14 +471,14 @@ where
     /// Persist all data written so far,
     /// including the not-yet-full tail block, and the status page.
     pub fn commit(&mut self) -> Result<(), Error> {
-        if self.wrbuf_dirty {
+        self.flush_queue()?;
+
+        if !self.wrbuf.is_empty() {
             let mut block: Block = [0; BLOCK_SIZE];
             block[..self.wrbuf.len()].copy_from_slice(&self.wrbuf);
             self.bio
                 .write_block(self.write_block + DATA_BLOCKS_OFFS, block)
                 .map_err(|_| Error::BlockWrite)?;
-            self.wrbuf_dirty = false;
-
             #[cfg(feature = "debug")]
             println!(
                 "SdLog: Persisted partial block {} ({} bytes) to device.",
@@ -503,7 +491,6 @@ where
             self.sd_write_status_page()?;
             self.status_page_dirty = false;
         }
-
         Ok(())
     }
 
