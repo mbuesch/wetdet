@@ -13,8 +13,12 @@ opt-level = "s"
 panic = "abort"
 codegen-units   = 1
 
-#[patch.crates-io]
+[patch.crates-io]
 #timeslice = { git = "https://github.com/mbuesch/timeslicers.git", branch = "master" }
 #timeslice = { path = "../../timeslicers" }
+
+#esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal.git", branch = "master" }
+#esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys.git", branch = "master" }
+#esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc.git", branch = "master" }
 
 # vim: ts=4 sw=4 expandtab
