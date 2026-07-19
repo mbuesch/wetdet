@@ -11,47 +11,11 @@ use esp_idf_hal::{
     spi::{self, SpiDeviceDriver, SpiDriver},
     units::KiloHertz,
 };
-use rkyv::{Archive, Deserialize, Serialize};
+use logentry::LogEntry;
 use std::sync::Arc;
 
 const BAUD: KiloHertz = KiloHertz(10000);
 const QUEUE_LEN: usize = 61;
-
-#[derive(Debug, Clone, Copy, Archive, Deserialize, Serialize)]
-pub struct LogEntry {
-    valid: u32,
-    pub boot_id: u32,
-    pub serial: u32,
-    pub temp_c: u32,
-    pub pres_hpa: u32,
-    pub rel_hum: u32,
-}
-
-impl LogEntry {
-    const VALID: u32 = 0xA5A5A5A5;
-    const FACT: f32 = 1000.0;
-
-    pub const fn new(boot_id: u32, serial: u32, temp_c: f32, pres_hpa: f32, rel_hum: f32) -> Self {
-        LogEntry {
-            valid: Self::VALID,
-            boot_id,
-            serial,
-            temp_c: (temp_c * Self::FACT) as u32,
-            pres_hpa: (pres_hpa * Self::FACT) as u32,
-            rel_hum: (rel_hum * Self::FACT) as u32,
-        }
-    }
-}
-
-impl sdlog::Item for LogEntry {
-    fn is_valid(&self) -> bool {
-        self.valid == Self::VALID
-    }
-
-    fn max_size() -> usize {
-        u8::MAX as usize
-    }
-}
 
 pub struct MeasLogDevice<'a> {
     sd: SdCard<SpiDeviceDriver<'a, Arc<SpiDriver<'a>>>, delay::Ets>,

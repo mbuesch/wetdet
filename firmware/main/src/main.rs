@@ -33,6 +33,7 @@ use crate::{
     measlog::MeasLog,
     statemachine::StateMachine,
 };
+use logentry::{LogEntry, AlarmState};
 use std::sync::{
     Arc, Mutex,
     atomic::{AtomicU32, Ordering},
@@ -93,28 +94,29 @@ impl<'a> sched_main::Ops for System<'a> {
             let mut envsensor = self.envsensor.lock().unwrap();
             envsensor.read()
         };
+        let alarm_state = {
+            let mut statemachine = self.statemachine.lock().unwrap();
+            if let Some(env) = &env {
+                statemachine.feed_env_1000ms(env);
+            }
+            statemachine.evaluate_1000ms();
+            statemachine.alarm_state()
+        };
+        {
+            let mut alarm = self.alarm.lock().unwrap();
+            alarm.activate(alarm_state != AlarmState::Off);
+        }
         if let Some(env) = &env {
-            let log = measlog::LogEntry::new(
+            let log = LogEntry::new(
                 self.boot_id,
                 self.measlog_serial.fetch_add(1, Ordering::Relaxed),
                 env.temp_c,
                 env.pres_hpa,
                 env.rel_hum,
+                alarm_state,
             );
             let mut measlog = self.measlog.lock().unwrap();
             measlog.push_entry(log);
-        }
-        let alarm_active = {
-            let mut statemachine = self.statemachine.lock().unwrap();
-            if let Some(env) = env {
-                statemachine.feed_env_1000ms(env);
-            }
-            statemachine.evaluate_1000ms();
-            statemachine.alarm_active()
-        };
-        {
-            let mut alarm = self.alarm.lock().unwrap();
-            alarm.activate(alarm_active);
         }
     }
 

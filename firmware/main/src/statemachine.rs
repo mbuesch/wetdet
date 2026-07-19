@@ -13,6 +13,7 @@ use crate::{
     util::{min, to_percent},
 };
 use heapless::Deque;
+use logentry::AlarmState;
 
 /// Measurement interval (in milliseconds).
 const MEAS_INTERVAL_MS: u32 = 1_000; // task_1s
@@ -25,7 +26,7 @@ pub struct StateMachine {
     meas_st: Deque<EnvSensorResult, MEAS_LEN>,
     meas_lt: Deque<EnvSensorResult, MEAS_LEN>,
     meas_lt_count: usize,
-    alarm: bool,
+    alarm: AlarmState,
     filled: bool,
     off_sec: u32,
 }
@@ -49,21 +50,21 @@ impl StateMachine {
             meas_st: Deque::new(),
             meas_lt: Deque::new(),
             meas_lt_count: 0,
-            alarm: false,
+            alarm: AlarmState::Off,
             filled: false,
             off_sec: 0,
         }
     }
 
-    fn push_meas(meas: &mut Deque<EnvSensorResult, MEAS_LEN>, env: EnvSensorResult) {
+    fn push_meas(meas: &mut Deque<EnvSensorResult, MEAS_LEN>, env: &EnvSensorResult) {
         while meas.len() >= MEAS_LEN {
             meas.pop_front();
         }
-        meas.push_back(env).expect("Deque::push_back failed");
+        meas.push_back(env.clone()).expect("Deque::push_back failed");
     }
 
-    pub fn feed_env_1000ms(&mut self, env: EnvSensorResult) {
-        Self::push_meas(&mut self.meas_st, env.clone());
+    pub fn feed_env_1000ms(&mut self, env: &EnvSensorResult) {
+        Self::push_meas(&mut self.meas_st, env);
 
         if self.meas_lt_count == 0 {
             Self::push_meas(&mut self.meas_lt, env);
@@ -93,7 +94,7 @@ impl StateMachine {
                     "\nhum: {:.1} %rel / {:.1} %rel, \
                     d_hum_st: {:.1}/{:.1} %rel, \
                     d_hum_lt: {:.1}/{:.1} %rel, \
-                    alarm: {}, off_sec: {}/{} s",
+                    {:?}, off_sec: {}/{} s",
                     to_percent(rel_hum),
                     to_percent(HUM_ALARM_ON_THRES),
                     to_percent(d_hum_st),
@@ -106,50 +107,46 @@ impl StateMachine {
                 );
             }
 
-            let mut trig_alarm = false;
-
             if rel_hum > HUM_ALARM_ON_THRES {
-                if !self.alarm {
+                if self.alarm == AlarmState::Off {
                     println!(
                         "Trigger: Humidity alarm ON (rel_hum: {:.1} %rel)",
                         to_percent(rel_hum)
                     );
                 }
-                trig_alarm = true;
+                self.alarm = AlarmState::OnThres;
+                self.off_sec = 0;
             } else if d_hum_st >= D_HUM_ST_ALARM_ON_THRES {
-                if !self.alarm {
+                if self.alarm == AlarmState::Off {
                     println!(
                         "Trigger: Humidity alarm ON (d_hum: {:.1} %rel short-term)",
                         to_percent(d_hum_st)
                     );
                 }
-                trig_alarm = true;
+                self.alarm = AlarmState::OnStThres;
+                self.off_sec = 0;
             } else if d_hum_lt >= D_HUM_LT_ALARM_ON_THRES {
-                if !self.alarm {
+                if self.alarm == AlarmState::Off {
                     println!(
                         "Trigger: Humidity alarm ON (d_hum: {:.1} %rel long-term)",
                         to_percent(d_hum_lt)
                     );
                 }
-                trig_alarm = true;
+                self.alarm = AlarmState::OnLtThres;
+                self.off_sec = 0;
             } else if rel_hum < HUM_ALARM_OFF_THRES {
                 if self.off_sec >= OFF_SEC_THRES {
-                    self.alarm = false;
+                    self.alarm = AlarmState::Off;
                 } else {
                     self.off_sec += 1;
                 }
             } else {
                 self.off_sec = 0;
             }
-
-            if trig_alarm {
-                self.alarm = true;
-                self.off_sec = 0;
-            }
         }
     }
 
-    pub fn alarm_active(&self) -> bool {
+    pub fn alarm_state(&self) -> AlarmState {
         self.alarm
     }
 }

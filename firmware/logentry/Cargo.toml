@@ -1,0 +1,10 @@
+[package]
+name = "logentry"
+version = "1.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+rkyv = "0.8"
+
+sdlog = { path = "../sdlog" }
