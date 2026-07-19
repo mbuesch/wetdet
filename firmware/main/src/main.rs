@@ -33,7 +33,7 @@ use crate::{
     measlog::MeasLog,
     statemachine::StateMachine,
 };
-use logentry::{LogEntry, AlarmState};
+use logentry::{AlarmState, LogEntry};
 use std::sync::{
     Arc, Mutex,
     atomic::{AtomicU32, Ordering},

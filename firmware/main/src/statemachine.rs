@@ -60,7 +60,8 @@ impl StateMachine {
         while meas.len() >= MEAS_LEN {
             meas.pop_front();
         }
-        meas.push_back(env.clone()).expect("Deque::push_back failed");
+        meas.push_back(env.clone())
+            .expect("Deque::push_back failed");
     }
 
     pub fn feed_env_1000ms(&mut self, env: &EnvSensorResult) {

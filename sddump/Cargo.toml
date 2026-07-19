@@ -1,0 +1,20 @@
+# -*- coding: utf-8 -*-
+
+[package]
+name = "wetdet-sddump"
+version = "1.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = [ "derive" ] }
+libc = "0.2"
+logentry = { path = "../firmware/logentry" }
+nix = { version = "0.31", features = [ "ioctl" ] }
+sdlog = { path = "../firmware/sdlog", features = [] }
+
+[profile.release]
+lto = "thin"
+
+# vim: ts=4 sw=4 expandtab
