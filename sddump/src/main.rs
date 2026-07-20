@@ -16,7 +16,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
-nix::ioctl_read!(blkgetsize64, 0x12, 114, u64);
+fn safe_blkgetsize64(file: &File) -> nix::Result<u64> {
+    let fd = file.as_raw_fd();
+    let mut len: u64 = 0;
+    nix::ioctl_read!(blkgetsize64, 0x12, 114, u64);
+    // SAFETY: `fd` is a valid file descriptor and `len` is a valid pointer to a `u64`.
+    unsafe { blkgetsize64(fd, &raw mut len) }?;
+    Ok(len)
+}
 
 struct Io {
     file: File,
@@ -35,10 +42,7 @@ impl BlockIo for Io {
     fn num_blocks(&self) -> Result<u64, Self::Error> {
         let meta = self.file.metadata()?;
         if meta.mode() & S_IFMT == S_IFBLK {
-            let fd = self.file.as_raw_fd();
-            let mut len = 0_u64;
-            unsafe { blkgetsize64(fd, &mut len as *mut u64) }?;
-            Ok(len / BLOCK_SIZE as u64)
+            Ok(safe_blkgetsize64(&self.file)? / BLOCK_SIZE as u64)
         } else {
             Ok(meta.len() / BLOCK_SIZE as u64)
         }
