@@ -78,7 +78,7 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-#[derive(Archive, Serialize, Deserialize, Default)]
+#[derive(Archive, Serialize, Deserialize)]
 struct StatusPage {
     magic0: u64,
     serial0: u64,
@@ -90,6 +90,21 @@ struct StatusPage {
 
     serial1: u64,
     magic1: u64,
+}
+
+impl Default for StatusPage {
+    fn default() -> Self {
+        Self {
+            magic0: MAGIC,
+            serial0: 0,
+            read_block: 0,
+            write_block: 0,
+            read_byte: 0,
+            write_byte: 0,
+            serial1: 0,
+            magic1: MAGIC,
+        }
+    }
 }
 
 const STATUS_PAGE_SIZE: usize = size_of::<rkyv::Archived<StatusPage>>();
@@ -161,6 +176,16 @@ where
         Ok(this)
     }
 
+    pub fn into_bio(self) -> B {
+        self.bio
+    }
+
+    pub fn format(mut self) -> Result<B, Error> {
+        self.sd_write_status_page_at(0, StatusPage::default())?;
+        self.sd_write_status_page_at(1, StatusPage::default())?;
+        Ok(self.into_bio())
+    }
+
     fn item_prefix_size() -> usize {
         let max_size = I::max_size();
         if usize::MAX >= u8::MAX as usize && max_size <= u8::MAX as usize {
@@ -212,6 +237,8 @@ where
     }
 
     fn sd_read_status_page_at(&mut self, block_index: u64) -> Result<StatusPage, Error> {
+        assert!(block_index == 0 || block_index == 1);
+
         if let Ok(block) = self.bio.read_block(block_index) {
             let stat = rkyv::from_bytes::<StatusPage, RkyvError>(&block[..STATUS_PAGE_SIZE]);
             if let Ok(stat) = stat {
@@ -224,15 +251,35 @@ where
                     && (stat.write_byte as usize) < BLOCK_SIZE
                 {
                     Ok(stat)
-                } else {
+                } else if stat.magic0 == 0 && stat.magic1 == 0 {
+                    // We consider this to be an empty card.
+                    // Return a new default status page.
                     Ok(Default::default())
+                } else {
+                    Err(Error::StatusPageFormat)
                 }
             } else {
-                Ok(Default::default())
+                Err(Error::StatusPageFormat)
             }
         } else {
             Err(Error::BlockRead)
         }
+    }
+
+    fn sd_write_status_page_at(&mut self, block_index: u64, stat: StatusPage) -> Result<(), Error> {
+        assert!(block_index == 0 || block_index == 1);
+
+        let bytes = rkyv::to_bytes::<RkyvError>(&stat).map_err(|_| Error::StatusPageFormat)?;
+        if bytes.len() > BLOCK_SIZE {
+            return Err(Error::StatusPageFormat);
+        }
+
+        let mut block: Block = [0; BLOCK_SIZE];
+        block[..bytes.len()].copy_from_slice(&bytes);
+
+        self.bio
+            .write_block(block_index, block)
+            .map_err(|_| Error::BlockWrite)
     }
 
     fn sd_read_status_page(&mut self) -> Result<(), Error> {
@@ -273,21 +320,9 @@ where
             read_byte: self.read_byte,
             write_byte: self.write_byte,
         };
-
-        let bytes = rkyv::to_bytes::<RkyvError>(&stat).map_err(|_| Error::StatusPageFormat)?;
-        if bytes.len() > BLOCK_SIZE {
-            return Err(Error::StatusPageFormat);
-        }
-
-        let mut block: Block = [0; BLOCK_SIZE];
-        block[..bytes.len()].copy_from_slice(&bytes);
-
         let block_index = self.serial & 1; // Block 0 or 1.
-        self.bio
-            .write_block(block_index, block)
-            .map_err(|_| Error::BlockWrite)?;
 
-        Ok(())
+        self.sd_write_status_page_at(block_index, stat)
     }
 
     /// Flush the currently full `wrbuf` to the device as a complete block

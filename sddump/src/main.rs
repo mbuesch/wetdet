@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //
 
-use anyhow as ah;
+use anyhow::{self as ah, format_err as err};
 use clap::Parser;
 use libc::{S_IFBLK, S_IFMT};
 use logentry::LogEntry;
@@ -74,6 +74,12 @@ struct Args {
     /// Do not abort on entry errors.
     #[arg(short = 'c', long)]
     error_continue: bool,
+
+    /// Delete all content and exit.
+    ///
+    /// You must also pass '--commit' to actually delete the content.
+    #[arg(long)]
+    format: bool,
 }
 
 fn handle_err(args: &Args, msg: &str) -> ah::Result<()> {
@@ -97,6 +103,18 @@ fn main() -> ah::Result<()> {
         sdlog.get_write_block_index(),
         sdlog.get_num_blocks()
     );
+
+    if args.format {
+        if !args.commit {
+            return Err(err!("MeasLog: '--format' requires '--commit'."));
+        }
+        if let Err(e) = sdlog.format() {
+            handle_err(&args, &format!("MeasLog: Failed to delete content: {e:?}"))?;
+        } else {
+            eprintln!("MeasLog: Deleted all content.");
+        }
+        return Ok(());
+    }
 
     loop {
         match sdlog.pop_item() {
