@@ -24,4 +24,4 @@ build-std = ["std", "panic_abort"]
 
 [env]
 ESP_IDF_SYS_ROOT_CRATE = { value = "main" }
-ESP_IDF_VERSION = { value = "tag:v5.5.4" }
+ESP_IDF_VERSION = { value = "tag:v6.0.2" }

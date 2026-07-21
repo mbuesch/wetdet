@@ -18,8 +18,8 @@ codegen-units   = 1
 #timeslice = { git = "https://github.com/mbuesch/timeslicers.git", branch = "master" }
 #timeslice = { path = "../../timeslicers" }
 
-#esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal.git", branch = "master" }
-#esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys.git", branch = "master" }
-#esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc.git", branch = "master" }
+esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal.git", rev = "6d9cd59cedbda3780d97574b4accfcd93ed45281" }
+esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys.git", rev = "3ca5277790672dffad3f8d1352104dcfcea85b81" }
+esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc.git", rev = "ce39b028522b5daff2cd52d9619bf9c859658740" }
 
 # vim: ts=4 sw=4 expandtab
