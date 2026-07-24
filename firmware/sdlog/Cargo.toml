@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 heapless = "0.9"
-rkyv = "0.8"
+rkyv = { version = "0.8", features = [ "unaligned" ] }
 
 [features]
 default = []

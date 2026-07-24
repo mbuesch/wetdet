@@ -42,14 +42,10 @@ impl<'a> Alarm<'a> {
         if self.active {
             if self.count < ALARM_ON_TIME || ALARM_OFF_TIME == 0 {
                 level = Level::High;
-                self.count = self.count.wrapping_add(1);
-            } else if self.count >= ALARM_ON_TIME + ALARM_OFF_TIME {
-                level = Level::Low;
-                self.count = 0;
             } else {
                 level = Level::Low;
-                self.count = self.count.wrapping_add(1);
             }
+            self.count = (self.count + 1) % (ALARM_ON_TIME + ALARM_OFF_TIME);
         } else {
             level = Level::Low;
             self.count = 0;

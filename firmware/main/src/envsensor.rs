@@ -34,11 +34,10 @@ impl EnvSensorResult {
     #[allow(dead_code)]
     pub fn print(&self) {
         println!(
-            "Environment: t = {}.{} *C, p = {} hPa, h = {} %",
-            self.temp_c as i32,
-            ((self.temp_c * 10.0) % 10.0) as i32,
-            self.pres_hpa.round() as i32,
-            (self.rel_hum * 100.0).round() as i32
+            "Environment: t = {:.2} *C, p = {:.1} hPa, h = {:.1} %",
+            self.temp_c,
+            self.pres_hpa,
+            self.rel_hum * 100.0
         );
     }
 }

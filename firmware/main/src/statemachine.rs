@@ -18,7 +18,7 @@ use logentry::AlarmState;
 /// Measurement interval (in milliseconds).
 const MEAS_INTERVAL_MS: u32 = 1_000; // task_1s
 /// Measurement buffer length (in number of entries).
-const MEAS_LEN: usize = ((MEAS_LEN_S * 1_000).div_ceil(MEAS_INTERVAL_MS)) as usize;
+const MEAS_LEN: usize = ((MEAS_LEN_S * 1_000).div_ceil(MEAS_INTERVAL_MS) + 1) as usize;
 /// Minimum number of measurements in the buffer before evaluation starts.
 const MEAS_MIN_FILL: usize = min(MEAS_LEN, 10);
 

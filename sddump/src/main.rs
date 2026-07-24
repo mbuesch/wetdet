@@ -130,7 +130,6 @@ fn main() -> ah::Result<()> {
                     handle_err(&args, "MeasLog: Entry is invalid.")?;
                 }
             }
-            Err(sdlog::Error::ItemDeserialize) => (),
             Err(e) => {
                 handle_err(&args, &format!("MeasLog: Failed to read entry: {e:?}"))?;
             }
